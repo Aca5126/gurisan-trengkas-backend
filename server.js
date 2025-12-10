@@ -6,17 +6,22 @@ const translateRouter = require('./src/routes/translate');
 
 const app = express();
 
-// CORS: benarkan GitHub Pages (*.github.io)
+// CORS: gunakan ALLOWED_ORIGINS env (dipisah koma), fallback benarkan github.io
+const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     try {
       const u = new URL(origin);
-      if (u.hostname.endsWith('github.io')) return callback(null, true);
+      const okEnv = allowed.includes(u.origin) || allowed.includes(u.hostname);
+      const okGithub = u.hostname.endsWith('github.io');
+      if (okEnv || okGithub) return callback(null, true);
     } catch {}
     return callback(null, false);
   }
 };
+
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 
