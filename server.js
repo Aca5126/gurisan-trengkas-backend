@@ -6,8 +6,11 @@ const translateRouter = require('./src/routes/translate');
 
 const app = express();
 
-// CORS: gunakan ALLOWED_ORIGINS env (dipisah koma), fallback benarkan github.io
-const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+// CORS: guna ALLOWED_ORIGINS (dipisah koma) + *.github.io
+const allowed = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -17,7 +20,9 @@ const corsOptions = {
       const okEnv = allowed.includes(u.origin) || allowed.includes(u.hostname);
       const okGithub = u.hostname.endsWith('github.io');
       if (okEnv || okGithub) return callback(null, true);
-    } catch {}
+    } catch {
+      // ignore parse error
+    }
     return callback(null, false);
   }
 };
@@ -25,8 +30,13 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 
-app.get('/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+app.get('/health', (req, res) => {
+  res.json({ ok: true, time: new Date().toISOString() });
+});
+
 app.use('/api', translateRouter);
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server berjalan pada port ${PORT}`);
+});
