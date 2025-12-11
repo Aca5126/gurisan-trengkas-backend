@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
-const translateRouter = require('./src/routes/translate');
+const translateRouter = require('./routes/translate');
 
 const app = express();
 
