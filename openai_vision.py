@@ -1,13 +1,14 @@
 import base64
 from io import BytesIO
 from PIL import Image
-from openai import OpenAI
+import openai
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Set API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 def decode_base64_image(image_base64: str) -> Image.Image:
@@ -40,8 +41,8 @@ def analyze_image_with_vision(image_base64: str) -> str:
         image = decode_base64_image(image_base64)
         image_bytes = image_to_bytes(image)
 
-        # Hantar ke GPT-4o Vision
-        response = client.chat.completions.create(
+        # Hantar ke GPT-4o Vision (API gaya lama)
+        response = openai.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -51,9 +52,12 @@ def analyze_image_with_vision(image_base64: str) -> str:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Sila baca tulisan trengkas dalam imej ini dan berikan teks biasa."},
                         {
-                            "type": "image",
+                            "type": "text",
+                            "text": "Sila baca tulisan trengkas dalam imej ini dan berikan teks biasa."
+                        },
+                        {
+                            "type": "image_url",
                             "image_url": "data:image/png;base64," + image_base64
                         }
                     ]
@@ -61,7 +65,7 @@ def analyze_image_with_vision(image_base64: str) -> str:
             ]
         )
 
-        detected_text = response.choices[0].message.content.strip()
+        detected_text = response["choices"][0]["message"]["content"].strip()
         return detected_text
 
     except Exception as e:
