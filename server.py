@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+import os
 
 from models import VerifyRequest, VerifyResponse, HistoryResponse
 from openai_vision import analyze_image_with_vision
@@ -22,6 +23,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# -----------------------------
+# Endpoint Root (Health Check)
+# -----------------------------
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Gurisan Trengkas AI backend is running."}
 
 
 # -----------------------------
@@ -69,7 +78,9 @@ async def verify_trengkas(data: VerifyRequest):
             if i < len(detected) and detected[i] == char:
                 match_count += 1
             else:
-                mistakes.append(f"Jangka '{char}' tetapi dapat '{detected[i] if i < len(detected) else '-'}'")
+                mistakes.append(
+                    f"Jangka '{char}' tetapi dapat '{detected[i] if i < len(detected) else '-'}'"
+                )
 
         accuracy = (match_count / len(expected)) * 100
 
@@ -108,4 +119,5 @@ async def history(user_id: str):
 # Run server (untuk local testing)
 # -----------------------------
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("server:app", host="0.0.0.0", port=port)
